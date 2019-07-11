@@ -20,13 +20,22 @@ const schema = new mongoose.Schema(
       unique: true
     },
     confirmed: { type: Boolean, default: false },
-    passwordHash: { type: String, required: true }
+    passwordHash: { type: String, required: true },
+    confirmationToken: { type: String, default: "" }
   },
   { timestamps: true }
 );
 
 schema.methods.setPassword = function setPassword(password) {
   this.passwordHash = bcrypt.hashSync(password, 10);
+};
+
+schema.methods.setConfirmationToken = function setConfirmationToken(password) {
+  this.confirmationToken = this.generateJWT();
+};
+
+schema.methods.generateConfirmationUrl = function generateConfirmationUrl() {
+  return `${process.env.HOST}/confirmation/${this.confirmationToken}`;
 };
 
 schema.plugin(uniqueValidator, { message: "This {PATH} is already taken." });
@@ -38,7 +47,9 @@ schema.methods.isValidPassword = function isValidPassword(password) {
 schema.methods.generateJWT = function generateJWT() {
   return jwt.sign(
     {
-      email: this.email
+      email: this.email,
+      username: this.username,
+      confirmed: this.confirmed
     },
     process.env.JWT_SECRET
   );

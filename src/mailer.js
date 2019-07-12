@@ -3,7 +3,6 @@ import nodemailer from "nodemailer";
 const from = "'Bookworm' <noreply@bookworm.in>";
 
 function setup() {
-  console.log("transport called");
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
@@ -15,7 +14,6 @@ function setup() {
 }
 export function sendConfirmationEmail(user) {
   const transport = setup();
-  console.log("Writing Email");
   const email = {
     from,
     to: user.email,
@@ -25,5 +23,20 @@ export function sendConfirmationEmail(user) {
   ${user.generateConfirmationUrl()}
   `
   };
+  transport.sendMail(email);
+}
+
+export function sendResetPasswordEmail(user) {
+  const transport = setup();
+  const email = {
+    from,
+    to: user.email,
+    subject: "Password reset email.",
+    text: `
+  Please follow this link to reset your password!
+  ${user.generateResetPasswordLink()}
+  `
+  };
+  console.log("send reset password email");
   transport.sendMail(email);
 }
